@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ app_name }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 40px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    .meta {
+      margin-top: 20px;
+      color: #555;
+      font-size: 14px;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>{{ app_name }}</h1>
+
+    <p>
+      This web page was deployed automatically using
+      <strong>Ansible</strong> on an <strong>Ubuntu EC2 instance</strong>.
+    </p>
+
+    <div class="meta">
+      <p><strong>Environment:</strong> {{ app_environment }}</p>
+      <p><strong>Host:</strong> {{ inventory_hostname }}</p>
+      <p><strong>Deployed at:</strong> {{ ansible_date_time.iso8601 }}</p>
+    </div>
+
+    <div class="footer">
+      <p>Infrastructure provisioned with Terraform.</p>
+    </div>
+  </div>
+</body>
+</html>

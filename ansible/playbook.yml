@@ -1,0 +1,6 @@
+- name: Deploy web app using Ansible
+  hosts: web
+  become: true
+
+  roles:
+    - nginx

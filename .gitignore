@@ -1,0 +1,19 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.*
+crash.log
+crash.*.log
+terraform-plan.txt
+terraform-apply.txt
+tfplan
+
+# Ansible
+*.retry
+ansible-site-run*.txt
