@@ -1,200 +1,56 @@
-# Deploying Web App Using Ansible (AWS EC2 + Nginx)
 
-This project demonstrates how to deploy a web application to an **Ubuntu EC2 instance**
-using **Ansible** for configuration management and **Terraform** for infrastructure
-provisioning.
+### 1. Project Overview (top section)
 
-Terraform is responsible only for provisioning AWS resources.
-Ansible installs, configures, and deploys the web application.
+Explain evolution, briefly:
 
-## Goal
+> This project builds on the previous *deploying-web-app-using-ansible* baseline and introduces **Docker Compose** to deploy a **multi-tier application** on AWS EC2, following industry-standard DevOps separation of concerns.
 
-Configure a remote server so that:
+---
 
-- Nginx is installed
-- A web application is deployed to `/var/www/html`
-- Page content is generated using an **Ansible Jinja2 template**
-- Nginx is enabled and running
-- The application is reachable over HTTP
+### 2. Tool Responsibility Matrix
 
-## High-Level Architecture
-
-Terraform provisions infrastructure → Ansible configures the server and deploys the app.
+This is critical and concise:
 
 ```
-Local machine (Ansible control node)
-|
-| ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
-v
-EC2 instance (Ubuntu)
-
-* install nginx
-* deploy templated index.html
-* ensure nginx is enabled and running
+Terraform  → Infrastructure (VPC, Security Group, EC2)
+Ansible    → Host configuration (Docker, Docker Compose)
+Docker     → Container runtime
+Docker Compose → Multi-tier application orchestration
 ```
 
-## Repository Structure
+---
+
+### 3. High-Level Architecture (ASCII)
+
+Add this exact style (keep it simple):
 
 ```
-.
-├── terraform/                 # AWS infrastructure provisioning
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── outputs.tf
-│   ├── versions.tf
-│   └── modules/
-│       ├── network/
-│       └── compute/
-│
-├── ansible/
-│   ├── ansible.cfg            # Project-scoped Ansible configuration
-│   ├── inventory.ini          # EC2 inventory
-│   ├── playbook.yml           # Entry-point playbook
-│   ├── bootstrap.yml          # Optional host bootstrap tasks
-│   ├── group_vars/
-│   │   └── web.yml            # Environment-specific variables
-│   └── roles/
-│       └── nginx/
-│           ├── tasks/
-│           │   └── main.yml   # Nginx installation and deployment logic
-│           └── templates/
-│               └── index.html.j2
-│
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── RUNBOOK.md
-│   └── ANSIBLE-TROUBLESHOOTING.md
-│
-└── README.md
+Local Machine
+   |
+   | terraform apply
+   v
+AWS EC2
+   |
+   | ansible-playbook
+   v
+Docker Engine
+   |
+   | docker-compose up
+   v
+--------------------------------
+| Frontend | API | Database    |
+--------------------------------
 ```
 
-## Separation of Concerns
+---
 
-- **Terraform**
-  - Provisions VPC, subnet, security group, and EC2
-  - Outputs the EC2 public IP
-- **Ansible**
-  - Installs and configures Nginx
-  - Deploys application content
-  - Manages services idempotently
-- **Nginx**
-  - Serves the rendered HTML page over HTTP
+### 4. Repository Structure (update only)
 
-## Ansible Role Design
-
-### `nginx` role responsibilities
-
-- Update apt package cache
-- Install Nginx
-- Ensure the Nginx service is enabled and running
-- Deploy a templated `index.html` file to `/var/www/html`
-
-All server configuration logic is encapsulated in a reusable Ansible role.
-
-## Variables & Templating
-
-The web page is generated from a Jinja2 template:
+Reference what already exists:
 
 ```
-ansible/roles/nginx/templates/index.html.j2
+terraform/   → infrastructure
+ansible/     → host configuration
+docker/      → multi-tier application (Docker Compose)
+docs/        → architecture, runbook, troubleshooting
 ```
-
-Injected variables include:
-
-- Application name
-- Environment (e.g. sandbox)
-- Hostname
-- Deployment timestamp
-
-Variables are defined in:
-
-```
-ansible/group_vars/web.yml
-````
-
-This demonstrates configuration-driven deployment rather than static scripting.
-
-## Idempotency
-
-The Ansible playbook is **idempotent**:
-
-- Re-running the playbook does not introduce unnecessary changes
-- Verified using Ansible check mode:
-
-```bash
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --check
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --check -vv
-````
-
-## Prerequisites
-
-* AWS credentials configured locally
-* Terraform installed
-* Ansible installed
-* SSH key pair:
-
-  * `deploying-web-app-using-ansible-key` (private)
-  * `deploying-web-app-using-ansible-key.pub` (public)
-
-## How to Run
-
-### 1️⃣ Provision Infrastructure (Terraform)
-
-```bash
-cd terraform
-terraform init
-terraform validate
-terraform plan
-terraform apply
-```
-
-Terraform outputs the EC2 public IP address.
-
-### 2️⃣ Configure Ansible Inventory
-
-Edit:
-
-```
-ansible/inventory.ini
-```
-
-Set the EC2 public IP and SSH details.
-
-Verify connectivity:
-
-```bash
-ansible all -i ansible/inventory.ini -m ping
-```
-
-### 3️⃣ Deploy the Web Application (Ansible)
-
-From the repository root:
-
-```bash
-ansible-inventory -i ansible/inventory.ini --list
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
-```
-
-## Verification
-
-* Visit: `http://<EC2_PUBLIC_IP>/`
-* Expected result:
-
-  * Custom web page served by Nginx
-  * Page displays environment, host, and deployment timestamp
-
-## Evidence
-
-Execution logs and screenshots are stored externally to keep the repository clean:
-
-```
-deploying-webapp-using-ansible-screenshots/
-```
-
-## Summary
-
-* Terraform provisions infrastructure
-* Ansible configures and deploys the application
-* Templates are used for dynamic content
-* Deployment is repeatable and idempotent
-* No manual server changes are required
