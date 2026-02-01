@@ -9,7 +9,7 @@
   <p id="status">Checking API...</p>
 
   <script>
-    fetch("http://api:5000/health")
+    fetch("/api/health")
       .then(res => res.json())
       .then(data => {
         document.getElementById("status").innerText =
