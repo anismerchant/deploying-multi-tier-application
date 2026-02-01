@@ -1,134 +1,86 @@
-# Architecture — Deploying Web App Using Ansible
+### 1. Architecture Overview
 
-## Purpose
+State the evolution in one paragraph:
 
-Describe how infrastructure, configuration, and application layers interact
-to deploy a web app on AWS EC2 using Ansible.
+> This architecture builds on a Terraform + Ansible baseline and introduces Docker Compose to run a multi-tier application on a single EC2 host, reflecting common industry patterns for small to mid-scale deployments.
 
-## System Boundaries
+---
 
-```
-┌───────────────────────────┐
-│ Local Machine             │
-│ (Ansible Control Node)    │
-│                           │
-│ - ansible-playbook        │
-│ - inventory.ini           │
-│ - nginx templates         │
-└─────────────┬─────────────┘
-│ SSH (22)
-v
-┌───────────────────────────┐
-│ AWS EC2                   │
-│ (Managed Node)            │
-│                           │
-│ - Nginx                   │
-│ - /var/www/<site>         │
-│ - /etc/nginx/*            │
-└───────────────────────────┘
-```
-
-## Layer Responsibilities
-
-### Terraform (Infrastructure)
-
-- Provisions EC2
-- Creates security groups (22, 80)
-- Attaches SSH key
-- Outputs EC2 public IP
-
-Terraform does **not** install software.
-
-### Ansible (Configuration)
-
-- Connects via SSH using inventory
-- Installs Nginx
-- Copies web app files
-- Renders Nginx config from template
-- Enables site and reloads Nginx
-
-### Nginx (Runtime)
-
-- Listens on port 80
-- Serves static web app
-- Routes requests to `/var/www/<site>`
-
-## Deployment Flow
+### 2. Responsibility Boundaries (critical)
 
 ```
-terraform apply
-↓
-EC2 instance exists
-↓
-Update inventory.ini with EC2 IP
-↓
-ansible-playbook
-↓
-Nginx configured and running
-↓
-Browser → HTTP → Web app
+Terraform
+  - VPC / networking
+  - Security groups
+  - EC2 instance
+
+Ansible
+  - OS bootstrap
+  - Docker + Docker Compose installation
+  - Host readiness
+
+Docker Engine
+  - Container runtime
+
+Docker Compose
+  - Application orchestration
+  - Service networking
 ```
 
-## Key Design Decisions
+---
 
-- Infrastructure and configuration are separated
-- Ansible is idempotent (safe to re-run)
-- Configuration is defined as code (templates + variables)
-
-## Ansible Web Application Deployment Flow
-
-This project uses Ansible to configure an Ubuntu EC2 instance and deploy
-a web application served by Nginx. Ansible acts as the configuration
-management and application deployment layer on top of infrastructure
-provisioned by Terraform.
-
-### High-level flow
+### 3. System Architecture
 
 ```
-Developer (Local Machine)
-|
-| ansible-playbook
-v
-Ansible Control Node
-|
-| SSH (key-based auth)
-v
-Ubuntu EC2 Instance
-|
-| apt / systemd
-v
-Nginx Web Server
-|
-| HTTP :80
-v
-Web Browser
+Local Machine
+   |
+   | terraform apply
+   v
+AWS Infrastructure
+   |
+   | ansible-playbook
+   v
+EC2 Host
+   |
+   | Docker Engine
+   v
+Docker Compose
+   |
+   |-- frontend (8080)
+   |-- api (5000)
+   |-- database (3306, internal)
 ```
 
-### Configuration and content management
+---
 
-Ansible uses a role-based structure to manage the web server and application
-content:
+### 4. Data Flow (browser → DB)
 
 ```
-group_vars/web.yml
-|
-| variables (app_name, app_environment)
-v
-templates/index.html.j2
-|
-| template rendering
-v
-/var/www/html/index.html
-|
-| served by Nginx
-v
-Client Browser
+Browser
+  |
+  | http://PUBLIC_IP:8080
+  v
+Frontend Container
+  |
+  | HTTP API call
+  v
+API Container
+  |
+  | SQL
+  v
+Database Container
 ```
 
-### Key responsibilities
+**Key note:**
+Only **8080** and **5000** are exposed publicly.
+Database traffic stays on the Docker network.
 
-- **Terraform** provisions AWS infrastructure (VPC, subnet, security group, EC2)
-- **Ansible** installs and manages Nginx and deploys application content
-- **Nginx** serves the rendered HTML over HTTP
-- **group_vars** define environment-specific values
-- **templates** allow dynamic content generation without hardcoding
+---
+
+### 5. Why Docker Compose Here
+
+Short justification:
+
+* Single-host, multi-service orchestration
+* Simple service discovery
+* Clear separation between infra, config, runtime
