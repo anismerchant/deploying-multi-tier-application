@@ -51,6 +51,15 @@ Docker Compose
    |-- database (3306, internal)
 ```
 
+```
+Mental Model: Docker on EC2
+
+EC2
+ ├─ Docker Engine   ← added
+ ├─ Docker Compose  ← added
+ └─ Nginx           ← unchanged
+```
+
 ---
 
 ### 4. Data Flow (browser → DB)
@@ -81,12 +90,12 @@ Database traffic stays on the Docker network.
 
 Short justification:
 
-* Single-host, multi-service orchestration
-* Simple service discovery
-* Clear separation between infra, config, runtime
+- Single-host, multi-service orchestration
+- Simple service discovery
+- Clear separation between infra, config, runtime
 
 Host configuration (Ansible):
+
 - Installs Docker Engine and Docker Compose (plugin)
 - Starts Docker daemon
 - Grants non-root docker access (docker group)
-
