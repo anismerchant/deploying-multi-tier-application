@@ -97,3 +97,111 @@ If tasks change every run, review:
 
 * `copy` vs `template`
 * file permissions
+
+
+## Docker & Docker Compose Troubleshooting
+
+### 1. Docker not installed / command not found
+
+**Symptom**
+
+```
+docker: command not found
+```
+
+**Cause**
+
+* Docker role did not run or failed
+
+**Fix**
+
+```
+ansible-playbook -i inventory.ini bootstrap.yml
+```
+
+Verify:
+
+```
+docker --version
+```
+
+---
+
+### 2. Docker Compose not found
+
+**Symptom**
+
+```
+docker-compose: command not found
+```
+
+**Cause**
+
+* Compose binary/plugin not installed
+
+**Fix**
+
+* Re-run Ansible playbook
+* Verify:
+
+```
+docker compose version
+```
+
+or
+
+```
+docker-compose --version
+```
+
+---
+
+### 3. Containers start but app not reachable
+
+**Checklist**
+
+* EC2 security group allows **8080** and **5000**
+* Containers are running:
+
+```
+docker ps
+```
+
+* Correct public IP used in browser
+
+---
+
+### 4. API cannot reach database
+
+**Symptom**
+
+* Frontend loads
+* API errors on DB calls
+
+**Cause**
+
+* Wrong DB hostname
+
+**Fix**
+
+* Use **service name** from `docker-compose.yml`
+* Never use `localhost` between containers
+
+---
+
+### 5. Port already in use
+
+**Symptom**
+
+```
+bind: address already in use
+```
+
+**Fix**
+
+```
+sudo lsof -i :8080
+sudo lsof -i :5000
+```
+
+Stop conflicting service or change port mapping.
