@@ -6,6 +6,19 @@
 </head>
 <body>
   <h1>Frontend is running</h1>
-  <p>If you see this, Nginx + Docker Compose are working.</p>
+  <p id="status">Checking API...</p>
+
+  <script>
+    fetch("http://api:5000/health")
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("status").innerText =
+          "API status: " + data.status;
+      })
+      .catch(() => {
+        document.getElementById("status").innerText =
+          "API not reachable";
+      });
+  </script>
 </body>
 </html>
