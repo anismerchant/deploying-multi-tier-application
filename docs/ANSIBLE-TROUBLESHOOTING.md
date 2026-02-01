@@ -328,3 +328,5 @@ v
 +-- start Docker daemon
 +-- grant non-root access
 ```
+
+Nginx acts as a reverse proxy, routing /api/* requests to the internal API service over the Docker network.

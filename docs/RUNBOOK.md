@@ -20,8 +20,8 @@ terraform apply
 
 **Outcome:**
 
-* EC2 instance created
-* Security group allows: 22, 8080, 5000
+- EC2 instance created
+- Security group allows: 22, 8080, 5000
 
 ---
 
@@ -34,9 +34,9 @@ ansible-playbook -i inventory.ini playbook.yml
 
 **What this does:**
 
-* Installs Docker
-* Installs Docker Compose
-* Prepares host for containers
+- Installs Docker
+- Installs Docker Compose
+- Prepares host for containers
 
 This runs the ansible role roles/docker which:
 
@@ -46,6 +46,7 @@ This runs the ansible role roles/docker which:
 - adds SSH user to docker group (requires re-login)
 
 Verify:
+
 - docker --version
 - docker compose version
 
@@ -62,10 +63,11 @@ docker-compose up -d
 
 **Outcome:**
 
-* Frontend container running
-* API container running
-* Database container running
+- Frontend container running
+- API container running
+- Database container running
 
+#### The frontend Nginx container also serves as a reverse proxy, forwarding API requests internally to keep backend services private.
 ---
 
 ### 5. Verification
@@ -74,13 +76,14 @@ From browser:
 
 ```
 http://<EC2_PUBLIC_IP>:8080
+Frontend shows API status: ok
 ```
 
 Expected:
 
-* Frontend loads
-* Frontend can reach API
-* API can reach database
+- Frontend loads
+- Frontend can reach API
+- API can reach database
 
 ---
 
