@@ -1,96 +1,94 @@
-# Runbook — Deploying Web App Using Ansible
+### 1. Prerequisites
 
-This runbook describes the exact steps to deploy the web application safely.
+```
+- AWS account
+- Terraform installed
+- Ansible installed
+- SSH access to EC2
+- Docker & Docker Compose (installed via Ansible)
+```
 
-## 1. Provision Infrastructure (Terraform)
+---
 
-Terraform is responsible only for EC2 and networking.
+### 2. Infrastructure Provisioning (Terraform)
 
-```bash
-cd terraform
+```
 terraform init
-terraform validate
 terraform plan
 terraform apply
-````
+```
 
-Confirm:
+**Outcome:**
 
-* EC2 is running
-* Public IP is assigned
-* Port 22 and 80 are open
+* EC2 instance created
+* Security group allows: 22, 8080, 5000
 
-## 2. Verify SSH Access
+---
 
-From your local machine:
+### 3. Host Configuration (Ansible)
 
-```bash
-ssh -i ~/.ssh/deploying-web-app-using-ansible-key ubuntu@<EC2_PUBLIC_IP>
+```
+ansible-playbook -i inventory.ini bootstrap.yml
+ansible-playbook -i inventory.ini playbook.yml
+```
+
+**What this does:**
+
+* Installs Docker
+* Installs Docker Compose
+* Prepares host for containers
+
+---
+
+### 4. Application Deployment (Docker Compose)
+
+From EC2:
+
+```
+cd docker/
+docker-compose up -d
+```
+
+**Outcome:**
+
+* Frontend container running
+* API container running
+* Database container running
+
+---
+
+### 5. Verification
+
+From browser:
+
+```
+http://<EC2_PUBLIC_IP>:8080
 ```
 
 Expected:
 
-* Successful login
-* No sudo or permission errors
+* Frontend loads
+* Frontend can reach API
+* API can reach database
 
-Exit the instance.
+---
 
-## 3. Update Ansible Inventory
-
-Edit:
-
-```
-ansible/inventory.ini
-```
-
-Set:
-
-* `ansible_host=<EC2_PUBLIC_IP>`
-* `ansible_user=ubuntu`
-* `ansible_ssh_private_key_file=~/.ssh/deploying-web-app-using-ansible-key`
-
-Validate inventory:
-
-```bash
-ansible-inventory -i ansible/inventory.ini --list
-```
-
-## 4. Dry Run (Optional)
-
-```bash
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --check
-```
-
-Use this to confirm task ordering and permissions.
-
-## 5. Deploy Application
-
-```bash
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
-```
-
-Expected:
-
-* Nginx installed
-* Site configuration written
-* Site enabled
-* Nginx reloaded
-
-## 6. Verify Deployment
-
-Open browser:
+### 6. Shutdown (optional)
 
 ```
-http://<EC2_PUBLIC_IP>/
+docker-compose down
 ```
 
-Expected:
+---
 
-* Web app loads via Nginx
+## Execution Order
 
-## 7. Re-run Safety
-
-The playbook is idempotent. Re-running it should result in:
-
-* No failures
-* Minimal or no changes
+```
+terraform apply
+      ↓
+ansible-playbook
+      ↓
+docker-compose up
+      ↓
+browser verification
+```
