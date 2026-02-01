@@ -84,3 +84,9 @@ Short justification:
 * Single-host, multi-service orchestration
 * Simple service discovery
 * Clear separation between infra, config, runtime
+
+Host configuration (Ansible):
+- Installs Docker Engine and Docker Compose (plugin)
+- Starts Docker daemon
+- Grants non-root docker access (docker group)
+

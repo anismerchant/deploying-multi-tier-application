@@ -38,6 +38,17 @@ ansible-playbook -i inventory.ini playbook.yml
 * Installs Docker Compose
 * Prepares host for containers
 
+This runs the ansible role roles/docker which:
+
+- adds Docker’s official apt repo + GPG key
+- installs docker-ce + docker-compose-plugin
+- starts/enables docker service
+- adds SSH user to docker group (requires re-login)
+
+Verify:
+- docker --version
+- docker compose version
+
 ---
 
 ### 4. Application Deployment (Docker Compose)
